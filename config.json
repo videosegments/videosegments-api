@@ -1,0 +1,74 @@
+{
+	"prod": {
+		"database": {
+			"host": "localhost",
+			"port": "",
+			"user": "root",
+			"password": "",
+			"database": "videosegments-prod"
+		},
+
+		"port": 3000
+	},
+
+	"dev": {
+		"database": {
+			"host": "localhost",
+			"port": "",
+			"user": "root",
+			"password": "",
+			"database": "videosegments-dev"
+		},
+
+		"port": 3001
+	},
+
+	"test": {
+		"database": {
+			"host": "localhost",
+			"port": "",
+			"user": "root",
+			"password": "",
+			"database": "videosegments-test"
+		},
+
+		"user": {
+			"login": "user",
+			"password": "qwerty"
+		},
+		"moderator": {
+			"login": "moder",
+			"password": "qwerty"
+		},
+		"admin": {
+			"login": "admin",
+			"password": "qwerty"
+		},
+
+		"port": 3002,
+
+		"video": {
+			"user": "12345678910",
+			"existing": "12345678911",
+			"invalid": "12345678912",
+			"moderator": "12345678913",
+			"admin": "12345678914",
+			"anonymous": "12345678915"
+		}
+	},
+
+	"sessionSecret": "video-v4-segments",
+
+	"limits": {
+		"pending": {
+			"time": {
+				"registered": 10,
+				"anonymous": 60
+			},
+			"count": {
+				"registered": 10,
+				"anonymous": 10
+			}
+		}
+	}
+}
