@@ -57,7 +57,8 @@
 		}
 	},
 
-	"sessionSecret": "video-v4-segments",
+	"sessionSecret": "put your secret key here",
+	"googleSecret": "put your secret key here",
 
 	"limits": {
 		"pending": {
