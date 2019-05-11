@@ -200,4 +200,16 @@ describe("/POST segmentation", function () {
 			done();
 		});
 	});
+
+	it("captcha", function (done) {
+		chai.request(server).post("/v4/youtube/" + "00000000011").send({
+			types: "c,a,c,ac,c",
+			timestamps: "10.0,20.0,30.5,31"
+		}).end(function (err, res) {
+			expect(res).to.have.status(200);
+			expect(res.body).to.have.property("captcha");
+			expect(res.body.captcha).to.be.equal(true);
+			done();
+		});
+	});
 });

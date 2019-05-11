@@ -83,9 +83,9 @@ exports.post = function (req, res) {
 
 	segmentation.get(req.params.domain, req.params.video_id).then(result => {
 		if (result === false) {
-			checkCaptcha(req.user).then(result => {
-				if (result) {
-					if (req.user && ((req.user.flags & users.FLAG.MODERATOR) || (req.user.flags & users.FLAG.NOREVIEW))) {
+			checkQueue(req.user).then(result => {
+				let addSegmentation = () => {
+					if (req.user && ((req.user.flags & users.FLAG.NOREVIEW) || (req.user.flags & users.FLAG.MODERATOR))) {
 						segmentation.add(req.params.domain, req.params.video_id, req.body.types, req.body.timestamps, req.user.user_id);
 						res.json({
 							added: "database"
@@ -96,18 +96,30 @@ exports.post = function (req, res) {
 							added: "pending"
 						});
 					}
-				} else {
-					res.json({
-						captcha: true
+				};
+				
+				// if captcha is required 
+				if (result === false) {
+					checkCaptcha(req, req.user).then(result => {
+						if (result) {
+							addSegmentation();
+						} else {
+							res.json({
+								captcha: true
+							});
+						}
 					});
+				} else {
+					addSegmentation();
 				}
+
 			}).catch(err => {
 				res.json({
 					err
 				});
 			});
 		} else {
-			return res.json({
+			res.json({
 				err: "segmentation exists"
 			});
 		}
@@ -118,21 +130,45 @@ exports.post = function (req, res) {
 	});
 }
 
-function checkCaptcha(user) {
+function checkCaptcha(req, user) {
 	return new Promise((resolve, reject) => {
-		let login, limit;
 		if (user) {
-			if ((user.flags & users.FLAG.NOCAPTCHA) || (user.flags & users.FLAG.MODERATOR)) {
+			if (user.flags & users.FLAG.NOCAPTCHA) {
+				return resolve(true);
+			}
+		}
+
+		if (req.body['g-recaptcha-response'] !== undefined) {
+			let verificationUrl = "https://www.google.com/recaptcha/api/siteverify?secret=" + config.googleSecret + "&response=" + req.body['g-recaptcha-response'] + "&remoteip=" + req.connection.remoteAddress;
+			request(verificationUrl, function (error, response, body) {
+				body = JSON.parse(body);
+				if (body.success !== undefined && !body.success) {
+					return resolve(false);
+				}
+
+				resolve(true);
+			});
+		}
+
+		resolve(false);
+	});
+}
+
+function checkQueue(user) {
+	return new Promise((resolve, reject) => {
+		let user_id, limit;
+		if (user) {
+			if ((user.flags & users.FLAG.NOREVIEW) || (user.flags & users.FLAG.MODERATOR)) {
 				return resolve(true);
 			}
 
 			limit = config.limits.pending.count.registered;
-			login = user.login;
+			user_id = user.user_id;
 		} else {
 			limit = config.limits.pending.count.anonymous;
 		}
 
-		pending.count(login).then(result => {
+		pending.count(user_id).then(result => {
 			if (result < limit) {
 				return resolve(true);
 			}
